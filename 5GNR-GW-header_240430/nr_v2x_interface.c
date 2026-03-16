@@ -267,45 +267,124 @@ int WriteNTcp(const int sock, uint8_t *buf, uint32_t len)
 
 /**
  * @name   AddExtStatusData
- * @brief  Extensible 메시지에 Status Data 추가하는 함수
- * @param  TLVC_Overall *p_overall : Overall 위치 포이터
+ * @brief  Extensible 메시지에 Status TLVC 패키지를 추가하는 함수
+ * @param  TLVC_Overall *p_overall : TLVC Overall 구조체의 시작 주소
+ * @param  int tx_rx : 송신(Tx) / 수신(Rx) 여부
  * @return int : 성공 - 0, 실패 - 음수
  **/
 int AddExtStatusData(TLVC_Overall *p_overall, int tx_rx)
 {
 	TLVC_STATUS_CommUnit *p_status;
+
+	// 현재 시간 계산용 변수
 	struct timeval now;
 	struct tm *tm;
+
+	// KETI timestamp 포맷으로 변환할 시간값
 	uint64_t keti_time;
+
+	// 현재 TLVC 패키지 전체 길이 (network → host 변환)
 	uint16_t package_len = ntohs(p_overall->len_package);
 
+
+	// ------------------------------------------------------
+	// Status TLVC가 들어갈 위치 계산
+	//
+	// TLVC 구조
+	// [ TLVC_Overall ]
+	// [ TLVC Package 1 ]
+	// [ TLVC Package 2 ]
+	// ...
+	// -> 현재 마지막 패키지 뒤에 Status TLVC 추가
+	// ------------------------------------------------------
 	p_status = (TLVC_STATUS_CommUnit *)((uint8_t *)p_overall + sizeof(TLVC_Overall) + package_len);
 
+
+	// ------------------------------------------------------
+	// Overall TLVC 정보 업데이트
+	// ------------------------------------------------------
+
+	// 패키지 개수 증가
 	p_overall->num_package++;
+
+	// 전체 패키지 길이 증가
 	package_len += sizeof(TLVC_STATUS_CommUnit);
+
+	// network byte order로 저장
 	p_overall->len_package = htons(package_len);
-	p_overall->crc = htons(CalcCRC16((uint8_t *)p_overall, sizeof(TLVC_Overall) - 2)); // TLVC 중 CRC만 제외
 
+
+	// ------------------------------------------------------
+	// Overall CRC 재계산
+	// CRC 필드는 제외하고 계산
+	// ------------------------------------------------------
+	p_overall->crc = htons(CalcCRC16((uint8_t *)p_overall, sizeof(TLVC_Overall) - 2));
+
+
+	// ------------------------------------------------------
+	// Status TLVC 필드 설정
+	// ------------------------------------------------------
+
+	// TLVC Type
 	p_status->type = htonl(EM_PT_STATUS);
-	p_status->len = htons(sizeof(TLVC_STATUS_CommUnit) - 6);
-	p_status->dev_type = eStatusDevType_Obu;
-	p_status->tx_rx = tx_rx;
-	p_status->dev_id = htonl(1);
-	p_status->hw_ver = htons(2);
-	p_status->sw_ver = htons(3);
-	gettimeofday(&now, NULL);
-	now.tv_sec = now.tv_sec + (3600 * 9); // UTC -> KST
-	tm = localtime(&now.tv_sec);
-	keti_time = (uint64_t)(tm->tm_year + 1900) * 1000000000000000 +
-				(uint64_t)(tm->tm_mon + 1) * 10000000000000 +
-				(uint64_t)tm->tm_mday * 100000000000 +
-				(uint64_t)tm->tm_hour * 1000000000 +
-				(uint64_t)tm->tm_min * 10000000 +
-				(uint64_t)tm->tm_sec * 100000 +
-				(uint64_t)now.tv_usec / 10;
 
+	// TLVC Length (Type + Length 제외한 Value 길이)
+	p_status->len = htons(sizeof(TLVC_STATUS_CommUnit) - 6);
+
+	// 장치 타입 (OBU)
+	p_status->dev_type = eStatusDevType_Obu;
+
+	// 송신 / 수신 상태
+	p_status->tx_rx = tx_rx;
+
+	// 장치 ID
+	p_status->dev_id = htonl(1);
+
+	// Hardware version
+	p_status->hw_ver = htons(2);
+
+	// Software version
+	p_status->sw_ver = htons(3);
+
+
+	// ------------------------------------------------------
+	// 현재 시간 가져오기
+	// ------------------------------------------------------
+	gettimeofday(&now, NULL);
+
+	// UTC → KST 변환
+	now.tv_sec = now.tv_sec + (3600 * 9);
+
+	tm = localtime(&now.tv_sec);
+
+
+	// ------------------------------------------------------
+	// KETI timestamp 생성
+	//
+	// 형식
+	// YYYYMMDDHHMMSSffffff
+	//
+	// 예:
+	// 20260316153010123456
+	// ------------------------------------------------------
+	keti_time =
+		(uint64_t)(tm->tm_year + 1900) * 1000000000000000 +
+		(uint64_t)(tm->tm_mon + 1) * 10000000000000 +
+		(uint64_t)tm->tm_mday * 100000000000 +
+		(uint64_t)tm->tm_hour * 1000000000 +
+		(uint64_t)tm->tm_min * 10000000 +
+		(uint64_t)tm->tm_sec * 100000 +
+		(uint64_t)now.tv_usec / 10;
+
+	// big endian으로 변환
 	p_status->timestamp = htobe64(keti_time);
-	p_status->crc = htons(CalcCRC16((uint8_t *)p_status, sizeof(TLVC_STATUS_CommUnit) - 2)); // TLVC 중 CRC만 제외
+
+
+	// ------------------------------------------------------
+	// Status TLVC CRC 계산
+	// CRC 필드는 제외하고 계산
+	// ------------------------------------------------------
+	p_status->crc = htons(CalcCRC16((uint8_t *)p_status, sizeof(TLVC_STATUS_CommUnit) - 2));
 
 	return 0;
 }
