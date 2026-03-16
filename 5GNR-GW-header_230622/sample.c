@@ -153,7 +153,7 @@ int parsing_option(int argc, char *argv[])
 		}
 	}
 
-	if (payload_type_flg)
+	if (payload_type_flg) // Payload Type 설정 [0...4]
 	{
 		if (strcmp(payload_type_str, "Raw") == 0)
 		{
@@ -181,7 +181,7 @@ int parsing_option(int argc, char *argv[])
 		}
 	}
 
-	if (comm_type_flg)
+	if (comm_type_flg) // 통신 타입 설정 [1...3]
 	{
 		if (strcmp(comm_type_str, "DSRC") == 0)
 		{
@@ -201,7 +201,7 @@ int parsing_option(int argc, char *argv[])
 		}
 	}
 
-	if (signer_id_flg)
+	if (signer_id_flg) // Sign 타입 지정 [0...3]
 	{
 		if (strcmp(signer_id_str, "UNSECURED") == 0)
 		{
