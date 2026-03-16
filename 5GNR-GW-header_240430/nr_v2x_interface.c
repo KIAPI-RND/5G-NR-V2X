@@ -1170,7 +1170,7 @@ static int AnalyzeMsg(uint8_t *msg, int len)
 	}
 	else
 	{
-		printf("[Error] Extensible Message Lenth : %d\n", len);
+		printf("[Error] Extensible Message Length : %d\n", len);
 		return -1;
 	}
 
@@ -1232,7 +1232,7 @@ static int AnalyzeMsg(uint8_t *msg, int len)
 			}
 			else
 			{
-				printf("Package : %d\n\tPSID : %d, TLV lenth : %d\n", i + 1, tlvc_type, tlvc_len + 6);
+				printf("Package : %d\n\tPSID : %d, TLV length : %d\n", i + 1, tlvc_type, tlvc_len + 6);
 				Debug_Msg_Print_Data(DEBUG_MSG_LV_MID, (uint8_t *)p, tlvc_len + 6); // 6: T, L 크기 추가
 			}
 
