@@ -517,14 +517,8 @@ void *v2x_rx_cmd_process(void *arg)
 	int n = -1;
 	time_t start_time = time(NULL);
 
-	while (1)
+	while ((uint32_t)(time(NULL) - start_time) < delay_time_sec_g)
 	{
-		time_t current_time = time(NULL);
-		if (current_time - start_time >= delay_time_sec_g)
-		{
-			break;
-		}
-
 		n = recv(sock_g, buf, sizeof(buf), 0);
 		if (n < 0)
 		{
