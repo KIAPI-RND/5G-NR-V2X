@@ -221,7 +221,7 @@ int parsing_option(int argc, char *argv[])
 		}
 		else
 		{
-			fprintf(stderr, "Communication type default set : %d\n", e_signer_id_g);
+			fprintf(stderr, "Signer ID type default set : %d\n", e_signer_id_g);
 		}
 	}
 
