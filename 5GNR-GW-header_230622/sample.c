@@ -251,6 +251,7 @@ int connect_v2x_socket(void)
 	if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 	{
 		perror("connect() failed");
+		close(sock);
 		return res;
 	}
 #if 1
@@ -259,6 +260,7 @@ int connect_v2x_socket(void)
 	if (flags == -1)
 	{
 		perror("fcntl F_GETFL failed");
+		close(sock);
 		return res;
 	}
 
@@ -266,6 +268,7 @@ int connect_v2x_socket(void)
 	if (fcntl(sock, F_SETFL, flags) == -1)
 	{
 		perror("fcntl F_SETFL failed");
+		close(sock);
 		return res;
 	}
 #endif
