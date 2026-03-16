@@ -351,6 +351,15 @@ void realtime_send(std::vector<std::string> &fields)
 void receive_data(int sock)
 {
 
+  constexpr size_t OFFSET_DEVICE_ID = 38;
+  constexpr size_t OFFSET_DEVICE_TYPE = 40;
+  constexpr size_t OFFSET_TIMESTAMP = 41;
+  constexpr size_t OFFSET_LATITUDE = 49;
+  constexpr size_t OFFSET_LONGITUDE = 53;
+  constexpr size_t OFFSET_HEADING = 57;
+  constexpr size_t OFFSET_SPEED = 59;
+  constexpr size_t OFFSET_LINK_ID = 61;
+
   while (true)
   {
     int bytesRead = recv(sock, rx, sizeof(rx), 0);
@@ -376,14 +385,14 @@ void receive_data(int sock)
       continue;
     }
 
-    memcpy(&device_id_rx, &rx[38], sizeof(device_id_rx));
-    memcpy(&device_type_rx, &rx[40], sizeof(device_type_rx));
-    memcpy(&timestamp_rx, &rx[41], sizeof(timestamp_rx));
-    memcpy(&latitude_rx, &rx[49], sizeof(latitude_rx));
-    memcpy(&longitude_rx, &rx[53], sizeof(longitude_rx));
-    memcpy(&heading_rx, &rx[57], sizeof(heading_rx));
-    memcpy(&speed_rx, &rx[59], sizeof(speed_rx));
-    memcpy(&link_id_rx, &rx[61], sizeof(link_id_rx));
+    memcpy(&device_id_rx, &rx[OFFSET_DEVICE_ID], sizeof(device_id_rx));
+    memcpy(&device_type_rx, &rx[OFFSET_DEVICE_TYPE], sizeof(device_type_rx));
+    memcpy(&timestamp_rx, &rx[OFFSET_TIMESTAMP], sizeof(timestamp_rx));
+    memcpy(&latitude_rx, &rx[OFFSET_LATITUDE], sizeof(latitude_rx));
+    memcpy(&longitude_rx, &rx[OFFSET_LONGITUDE], sizeof(longitude_rx));
+    memcpy(&heading_rx, &rx[OFFSET_HEADING], sizeof(heading_rx));
+    memcpy(&speed_rx, &rx[OFFSET_SPEED], sizeof(speed_rx));
+    memcpy(&link_id_rx, &rx[OFFSET_LINK_ID], sizeof(link_id_rx));
 
     printf("device_id : %d\n", device_id_rx);
     printf("device_type : %d\n", device_type_rx);
