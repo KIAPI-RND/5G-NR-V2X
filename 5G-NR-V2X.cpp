@@ -25,7 +25,7 @@ std::vector<char> bytes01;
 std::vector<char> bytes03;
 
 char rx[256];
-int i=1;
+int i = 1;
 
 uint16_t magic_num = 61937;
 uint16_t ver = 0;
@@ -53,97 +53,100 @@ uint8_t data[35];
 #pragma pack(push, 1)
 struct basic
 {
-	uint16_t device_id;
-	uint8_t device_type;
-	uint64_t timestamp;
-	int32_t latitude;
-	int32_t longitude;
-	uint16_t heading;
-	uint16_t speed;
-	char link_id[12];
+  uint16_t device_id;
+  uint8_t device_type;
+  uint64_t timestamp;
+  int32_t latitude;
+  int32_t longitude;
+  uint16_t heading;
+  uint16_t speed;
+  char link_id[12];
 };
 #pragma pack(pop)
 basic basic_payload;
 
 std::string id;
 
-	uint16_t device_id_rx;
-	uint8_t device_type_rx;
-	uint64_t timestamp_rx;
-	int32_t latitude_rx;
-	int32_t longitude_rx;
-	uint16_t heading_rx;
-	uint16_t speed_rx;
-	char link_id_rx[12];
+uint16_t device_id_rx;
+uint8_t device_type_rx;
+uint64_t timestamp_rx;
+int32_t latitude_rx;
+int32_t longitude_rx;
+uint16_t heading_rx;
+uint16_t speed_rx;
+char link_id_rx[12];
 
-  int serial_port;
-  uint16_t heading_pre;
+int serial_port;
+uint16_t heading_pre;
 
-  NmpntClient *__client = NULL;
-  char __mountpoint[32] = "SEJU_RTCM32";
+NmpntClient *__client = NULL;
+char __mountpoint[32] = "SEJU_RTCM32";
 
-  static void ntrip(void *self, char *data, int size){
-
-    write(serial_port, data, size);
-    printf("%s : ntrip : %d : %s\n", __mountpoint, size, data);
-  }
-
-  static void state(void *self, int status)
+static void ntrip(void *self, char *data, int size)
 {
-	printf("%s : ", __mountpoint);
-	switch (status)
-	{
-	case NTRIP_ONAIR:
-		printf("서비스를 시작하였습니다.\n");
-		break;
-	case NTRIP_OFFAIR:
-		printf("서비스를 정지하였습니다.\n");
-		break;
-	case NTRIP_SOCKET_ERROR:
-		printf("네트워크 오류입니다.\n");
-		break;
-	case NTRIP_CONNECT_ERROR:
-		printf("네트워크 상태를 확인하십시요.\n");
-		break;
-	case NTRIP_TIMEOUT_ERROR:
-		printf("네트워크 상태가 좋지 않습니다.\n");
-		break;
-	case NTRIP_CONNECT_CLOSE:
-		printf("네트워크 연결이 끊겼습니다.\n");
-		break;
-	case NTRIP_MOUNT_ERROR:
-		printf("지원하지 않는 마운트명입니다.\n");
-		break;
-	case NTRIP_USER_ERROR:
-		printf("사용자정보가 틀립니다.\n");
-		break;
-	case NTRIP_VERSION_ERROR:
-		printf("지원하지 않는 버전입니다.\n");
-		break;
-	case NTRIP_CASTER_ERROR:
-		printf("정상적인 캐스터가 아닙니다.\n");
-		break;
-	default:
-		printf("알 수 없는 오류입니다.\n");
-		break;
-	}
+
+  write(serial_port, data, size);
+  printf("%s : ntrip : %d : %s\n", __mountpoint, size, data);
+}
+
+static void state(void *self, int status)
+{
+  printf("%s : ", __mountpoint);
+  switch (status)
+  {
+  case NTRIP_ONAIR:
+    printf("서비스를 시작하였습니다.\n");
+    break;
+  case NTRIP_OFFAIR:
+    printf("서비스를 정지하였습니다.\n");
+    break;
+  case NTRIP_SOCKET_ERROR:
+    printf("네트워크 오류입니다.\n");
+    break;
+  case NTRIP_CONNECT_ERROR:
+    printf("네트워크 상태를 확인하십시요.\n");
+    break;
+  case NTRIP_TIMEOUT_ERROR:
+    printf("네트워크 상태가 좋지 않습니다.\n");
+    break;
+  case NTRIP_CONNECT_CLOSE:
+    printf("네트워크 연결이 끊겼습니다.\n");
+    break;
+  case NTRIP_MOUNT_ERROR:
+    printf("지원하지 않는 마운트명입니다.\n");
+    break;
+  case NTRIP_USER_ERROR:
+    printf("사용자정보가 틀립니다.\n");
+    break;
+  case NTRIP_VERSION_ERROR:
+    printf("지원하지 않는 버전입니다.\n");
+    break;
+  case NTRIP_CASTER_ERROR:
+    printf("정상적인 캐스터가 아닙니다.\n");
+    break;
+  default:
+    printf("알 수 없는 오류입니다.\n");
+    break;
+  }
 }
 
 template <typename T>
-void to_bytes(const T& object, std::vector<char>& bytes01) {
-    const char* begin = reinterpret_cast<const char*>(std::addressof(object));
-    const char* end = begin + sizeof(T);
-    bytes01.insert(bytes01.end(), begin, end);
+void to_bytes(const T &object, std::vector<char> &bytes01)
+{
+  const char *begin = reinterpret_cast<const char *>(std::addressof(object));
+  const char *end = begin + sizeof(T);
+  bytes01.insert(bytes01.end(), begin, end);
 }
 
 template <typename Y>
-void to_bytes1(const Y& object, std::vector<char>& bytes03) {
-    const char* begin = reinterpret_cast<const char*>(std::addressof(object));
-    const char* end = begin + sizeof(Y);
-    bytes03.insert(bytes03.end(), begin, end);
+void to_bytes1(const Y &object, std::vector<char> &bytes03)
+{
+  const char *begin = reinterpret_cast<const char *>(std::addressof(object));
+  const char *end = begin + sizeof(Y);
+  bytes03.insert(bytes03.end(), begin, end);
 }
-//crc-32
-   
+// crc-32
+
 static uint32_t crc32_tab[] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
     0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -189,21 +192,24 @@ static uint32_t crc32_tab[] = {
     0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
     0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
-static uint32_t crc32(uint32_t crc_in, const uint8_t* buf, int size) {
-  const uint8_t* p = buf;
+static uint32_t crc32(uint32_t crc_in, const uint8_t *buf, int size)
+{
+  const uint8_t *p = buf;
   uint32_t crc;
   crc = crc_in ^ ~0U;
   while (size--)
     crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
   return crc ^ ~0U;
 }
-uint32_t avb_crc32(const uint8_t* buf, size_t size) {
+uint32_t avb_crc32(const uint8_t *buf, size_t size)
+{
   return crc32(0, buf, size);
 }
 
-void realtime_send(std::vector<std::string>& fields)
+void realtime_send(std::vector<std::string> &fields)
 {
-  if (fields.size() <= 8) {
+  if (fields.size() <= 8)
+  {
     printf("invalid fields size: %d\n", fields.size());
     return;
   }
@@ -223,92 +229,94 @@ void realtime_send(std::vector<std::string>& fields)
   double lat_tf = std::stof(fields[3]);
   double lon_tf = std::stof(fields[5]);
   double speed_tf = std::stof(fields[7]);
-  if(fields[8].empty() == true){
+  if (fields[8].empty() == true)
+  {
     heading_RT = heading_pre;
   }
-  else{
+  else
+  {
     heading_tf = std::stof(fields[8]);
   }
 
-  lat_tf *=10000000;
+  lat_tf *= 10000000;
   convert_lat = std::to_string(lat_tf);
-  convert_lat_dd = convert_lat.substr(0,2);
-  convert_lat_mm = convert_lat.substr(2,9);
-  convert_lat_mm = std::to_string(std::stoi(convert_lat_mm)/60);
+  convert_lat_dd = convert_lat.substr(0, 2);
+  convert_lat_mm = convert_lat.substr(2, 9);
+  convert_lat_mm = std::to_string(std::stoi(convert_lat_mm) / 60);
   lat_tf = std::stoi(convert_lat_dd + convert_lat_mm);
 
-  lon_tf *=10000000;
+  lon_tf *= 10000000;
   convert_lon = std::to_string(lon_tf);
-  convert_lon_dd = convert_lon.substr(0,3);
-  convert_lon_mm = convert_lon.substr(3,10);
-  convert_lon_mm = std::to_string(std::stoi(convert_lon_mm)/60);
+  convert_lon_dd = convert_lon.substr(0, 3);
+  convert_lon_mm = convert_lon.substr(3, 10);
+  convert_lon_mm = std::to_string(std::stoi(convert_lon_mm) / 60);
   lon_tf = std::stoi(convert_lon_dd + convert_lon_mm);
 
-  heading_tf = heading_tf*80;
+  heading_tf = heading_tf * 80;
 
-  speed_tf = (speed_tf)*0.514447;
-  speed_tf = (speed_tf)*50;
+  speed_tf = (speed_tf) * 0.514447;
+  speed_tf = (speed_tf) * 50;
 
-   
   double latitude_raw;
   double longitude_raw;
-  
-  latitude_raw = (lat_tf)*0.0000001;  
-  longitude_raw = (lon_tf)*0.0000001;
-  
+
+  latitude_raw = (lat_tf) * 0.0000001;
+  longitude_raw = (lon_tf) * 0.0000001;
+
   pqxx::connection connection("dbname=kiapimap user=postgres password=1 hostaddr=192.168.11.133 port=5433");
   pqxx::work txn(connection);
 
-    std::string query = "SELECT id " 
-						"FROM a2_link "
-                        "ORDER BY ST_Distance("
-                        "geometry_wgs84, "
-                        "ST_SetSRID(ST_Point(" + std::to_string(longitude_raw) + ", " + std::to_string(latitude_raw) + "), 4326)"
-                        ") ASC "
-                        "LIMIT 1;";
+  std::string query = "SELECT id "
+                      "FROM a2_link "
+                      "ORDER BY ST_Distance("
+                      "geometry_wgs84, "
+                      "ST_SetSRID(ST_Point(" +
+                      std::to_string(longitude_raw) + ", " + std::to_string(latitude_raw) + "), 4326)"
+                                                                                            ") ASC "
+                                                                                            "LIMIT 1;";
 
-    pqxx::result r = txn.exec(query);
-   
-    for (auto row: r) {
-        //std::cout << "ID: " << row["id"].as<std::string>() << std::endl;
-        id = row["id"].as<std::string>();
-    }
+  pqxx::result r = txn.exec(query);
 
-	//std::cout << id.size() << id << basic_payload.link_id << std::endl;
-   
+  for (auto row : r)
+  {
+    // std::cout << "ID: " << row["id"].as<std::string>() << std::endl;
+    id = row["id"].as<std::string>();
+  }
+
+  // std::cout << id.size() << id << basic_payload.link_id << std::endl;
+
   memset(&basic_payload, 0, sizeof(basic_payload));
-  
+
   basic_payload.device_id = 11;
   basic_payload.device_type = 1;
   basic_payload.timestamp = timestamp_n;
   basic_payload.latitude = lat_tf;
   basic_payload.longitude = lon_tf;
-  if(fields[8].empty() == false){
+  if (fields[8].empty() == false)
+  {
     basic_payload.heading = heading_tf;
   }
   basic_payload.speed = speed_tf;
-  
 
   heading_pre = basic_payload.heading;
-  
-    strncpy(basic_payload.link_id, id.c_str(), sizeof(basic_payload.link_id));
-    //basic_payload.link_id[sizeof(basic_payload.link_id) - 1] = '\0';
-  
-  
+
+  strncpy(basic_payload.link_id, id.c_str(), sizeof(basic_payload.link_id));
+  // basic_payload.link_id[sizeof(basic_payload.link_id) - 1] = '\0';
+
   memcpy(data, &basic_payload, sizeof(basic_payload));
-  
-   for(i;i<2;i++){
-   to_bytes(magic_num, bytes01);
-   to_bytes(ver, bytes01);
-   to_bytes(e_action, bytes01);
-   to_bytes(e_payload_type, bytes01);
-   to_bytes(reserved1, bytes01);
-   to_bytes(psid, bytes01);
-   to_bytes(reserved2, bytes01);
-  
-   
-    send(sock , bytes01.data(), bytes01.size(), 0);
-															}
+
+  for (i; i < 2; i++)
+  {
+    to_bytes(magic_num, bytes01);
+    to_bytes(ver, bytes01);
+    to_bytes(e_action, bytes01);
+    to_bytes(e_payload_type, bytes01);
+    to_bytes(reserved1, bytes01);
+    to_bytes(psid, bytes01);
+    to_bytes(reserved2, bytes01);
+
+    send(sock, bytes01.data(), bytes01.size(), 0);
+  }
 
   to_bytes1(magic_num_tx, bytes03);
   to_bytes1(ver, bytes03);
@@ -326,172 +334,183 @@ void realtime_send(std::vector<std::string>& fields)
   to_bytes1(peer_l2id, bytes03);
   to_bytes1(reserved2, bytes03);
   to_bytes1(reserved3, bytes03);
-  
- uint32_t crc_value = avb_crc32(data, sizeof(data));
- 
+
+  uint32_t crc_value = avb_crc32(data, sizeof(data));
+
   to_bytes1(crc_value, bytes03);
   to_bytes1(length, bytes03);
   to_bytes1(data, bytes03);
-  
-  send(sock , bytes03.data(), bytes03.size(), 0);
+
+  send(sock, bytes03.data(), bytes03.size(), 0);
 
   bytes03.clear();
-  
- 
+
   // Send the message over TCP
-	
-	
 }
 
-void receive_data(int sock) {
-    
-    while (true) {
-        int bytesRead = recv(sock, rx, sizeof(rx), 0);
-        if (bytesRead < 0) {
-            perror("recv failed");
-            break;
-        } else if (bytesRead == 0) {
-            printf("connection closed");
-            break;
-        } else {
-            // buffer에 저장된 데이터를 사용합니다.
-             //printf("Received: %s\n", EPD0102);
-        }
-				
-			memcpy(&device_id_rx, &rx[38], sizeof(device_id_rx));
-			memcpy(&device_type_rx, &rx[40], sizeof(device_type_rx));
-			memcpy(&timestamp_rx, &rx[41], sizeof(timestamp_rx));
-			memcpy(&latitude_rx, &rx[49], sizeof(latitude_rx));
-			memcpy(&longitude_rx, &rx[53], sizeof(longitude_rx));
-			memcpy(&heading_rx, &rx[57], sizeof(heading_rx));
-			memcpy(&speed_rx, &rx[59], sizeof(speed_rx));
-			memcpy(&link_id_rx, &rx[61], sizeof(link_id_rx));
+void receive_data(int sock)
+{
 
-		printf("device_id : %d\n", device_id_rx);
-		printf("device_type : %d\n", device_type_rx);
-		printf("timestamp : %lu\n", timestamp_rx);
-		printf("latitude : %lf\n", latitude_rx*0.0000001);
-		printf("longitude : %lf\n", longitude_rx*0.0000001);
-		printf("heading : %lf\n", heading_rx*0.0125);
-		printf("speed : %lf km/h \n", speed_rx*0.02*3.6);
-		printf("link_id : %s\n\n", link_id_rx);
-    
+  while (true)
+  {
+    int bytesRead = recv(sock, rx, sizeof(rx), 0);
+    if (bytesRead < 0)
+    {
+      perror("recv failed");
+      break;
     }
+    else if (bytesRead == 0)
+    {
+      printf("connection closed");
+      break;
+    }
+    else
+    {
+      // buffer에 저장된 데이터를 사용합니다.
+      // printf("Received: %s\n", EPD0102);
+    }
+
+    if (bytesRead < 61 + (int)sizeof(link_id_rx))
+    {
+      fprintf(stderr, "received packet too short: %d\n", bytesRead);
+      continue;
+    }
+
+    memcpy(&device_id_rx, &rx[38], sizeof(device_id_rx));
+    memcpy(&device_type_rx, &rx[40], sizeof(device_type_rx));
+    memcpy(&timestamp_rx, &rx[41], sizeof(timestamp_rx));
+    memcpy(&latitude_rx, &rx[49], sizeof(latitude_rx));
+    memcpy(&longitude_rx, &rx[53], sizeof(longitude_rx));
+    memcpy(&heading_rx, &rx[57], sizeof(heading_rx));
+    memcpy(&speed_rx, &rx[59], sizeof(speed_rx));
+    memcpy(&link_id_rx, &rx[61], sizeof(link_id_rx));
+
+    printf("device_id : %d\n", device_id_rx);
+    printf("device_type : %d\n", device_type_rx);
+    printf("timestamp : %lu\n", timestamp_rx);
+    printf("latitude : %lf\n", latitude_rx * 0.0000001);
+    printf("longitude : %lf\n", longitude_rx * 0.0000001);
+    printf("heading : %lf\n", heading_rx * 0.0125);
+    printf("speed : %lf km/h \n", speed_rx * 0.02 * 3.6);
+    printf("link_id : %s\n\n", link_id_rx);
+  }
 }
 
-void serial_conect(){
- std::string buffer;
- std::string realtime_m;
- std::string realtime_m1;
- std::vector<std::string> fields;
+void serial_conect()
+{
+  std::string buffer;
+  std::string realtime_m;
+  std::string realtime_m1;
+  std::vector<std::string> fields;
 
- serial_port = open("/dev/ttyACM0", O_RDWR);
+  serial_port = open("/dev/ttyACM0", O_RDWR);
 
   fd_set read_fds;
   struct timeval timeout;
   int max_fd = serial_port + 1;
 
+  struct termios tty;
+  tcgetattr(serial_port, &tty);
 
- struct termios tty;
- tcgetattr(serial_port, &tty);
+  cfsetispeed(&tty, B38400);
+  cfsetospeed(&tty, B38400);
+  tty.c_cflag &= ~PARENB;
+  tty.c_cflag &= ~CSTOPB;
+  tty.c_cflag |= CS8;
 
- cfsetispeed(&tty, B38400);
- cfsetospeed(&tty, B38400);
- tty.c_cflag &= ~PARENB;
- tty.c_cflag &= ~CSTOPB;
- tty.c_cflag |= CS8;
+  tcsetattr(serial_port, TCSANOW, &tty);
 
- tcsetattr(serial_port, TCSANOW, &tty);
+  while (1)
+  {
 
- while(1){
+    FD_ZERO(&read_fds);
+    FD_SET(serial_port, &read_fds);
 
-  FD_ZERO(&read_fds);
-  FD_SET(serial_port, &read_fds);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
 
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 0;
+    if (select(max_fd, &read_fds, NULL, NULL, &timeout) > 0)
+    {
+      // 데이터 읽기
+      char buf[1024];
+      int num_bytes = read(serial_port, buf, sizeof(buf));
 
-if (select(max_fd, &read_fds, NULL, NULL, &timeout) > 0) {
-            // 데이터 읽기
-  char buf[1024];
-  int num_bytes = read(serial_port, buf, sizeof(buf));
-
-    if (num_bytes < 0) {
-      std::cerr << "Error reading: " << strerror(errno) << std::endl;
+      if (num_bytes < 0)
+      {
+        std::cerr << "Error reading: " << strerror(errno) << std::endl;
         break;
-       } else if (num_bytes > 0) {
-      // 읽은 데이터를 std::string buffer에 추가
-     buffer.append(buf, num_bytes);
-            }
-}
+      }
+      else if (num_bytes > 0)
+      {
+        // 읽은 데이터를 std::string buffer에 추가
+        buffer.append(buf, num_bytes);
+      }
+    }
 
- /* buffer.resize(2048);
-  int num_bytes = read(serial_port, &buffer[0], buffer.size());
+    /* buffer.resize(2048);
+     int num_bytes = read(serial_port, &buffer[0], buffer.size());
 
-  if(num_bytes < 0){
-    std::cerr << "Error reading: " << strerror(errno) << std::endl;
-  }*/
+     if(num_bytes < 0){
+       std::cerr << "Error reading: " << strerror(errno) << std::endl;
+     }*/
 
-  size_t RMC_PATH = buffer.find("$GNRMC");
-  realtime_m = buffer.substr(RMC_PATH);
+    size_t RMC_PATH = buffer.find("$GNRMC");
+    realtime_m = buffer.substr(RMC_PATH);
 
-  std::istringstream iss(realtime_m);
+    std::istringstream iss(realtime_m);
 
-  while(std::getline(iss, realtime_m1, ',')){
-    fields.push_back(realtime_m1);
+    while (std::getline(iss, realtime_m1, ','))
+    {
+      fields.push_back(realtime_m1);
+    }
+
+    realtime_send(fields);
+
+    fields.clear();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
-
-  realtime_send(fields);
-
-  fields.clear();
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
- }
-
 }
 
-void ntrip_client(){
+void ntrip_client()
+{
 
   __client = NmpntConstruct();
   NmpntStart(__client, NULL, __mountpoint, NTRIP_PURPOSE_RND, &ntrip, &state);
   getchar();
-
 }
 
 int main(int argc, char **argv)
 {
-	
-	struct sockaddr_in server, client;
 
-  //Create socket
-  sock = socket(AF_INET , SOCK_STREAM , 0);
+  struct sockaddr_in server, client;
+
+  // Create socket
+  sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock == -1)
   {
-      printf("Could not create socket");
-      return 1;
+    printf("Could not create socket");
+    return 1;
   }
   puts("Socket created");
-  
 
-  server.sin_addr.s_addr = inet_addr("192.168.1.11");  // Server IP
+  server.sin_addr.s_addr = inet_addr("192.168.1.11"); // Server IP
   server.sin_family = AF_INET;
-  server.sin_port = htons(47347);  // Server Port
+  server.sin_port = htons(47347); // Server Port
 
-  //Connect to remote server
-  if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0)
+  // Connect to remote server
+  if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0)
   {
-      perror("connect failed. Error");
-      return 1;
+    perror("connect failed. Error");
+    return 1;
   }
-  
-   
-	std::thread recvThread(receive_data, sock);
-    recvThread.detach();
-  //std::thread ntripThread(ntrip_client);
-    //ntripThread.detach();
-    
-  serial_conect();
 
+  std::thread recvThread(receive_data, sock);
+  recvThread.detach();
+  // std::thread ntripThread(ntrip_client);
+  // ntripThread.detach();
+
+  serial_conect();
 
   return 0;
 }
