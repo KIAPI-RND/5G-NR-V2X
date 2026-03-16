@@ -203,6 +203,11 @@ uint32_t avb_crc32(const uint8_t* buf, size_t size) {
 
 void realtime_send(std::vector<std::string>& fields)
 {
+  if (fields.size() <= 8) {
+    printf("invalid fields size: %d\n", fields.size());
+    return;
+  }
+
   auto current_time = std::chrono::system_clock::now();
   auto timestamp_n = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count();
 
