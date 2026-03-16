@@ -557,7 +557,11 @@ int process_commands(void)
 	void *tx_thread_ret;
 	void *rx_thread_ret;
 
-	v2x_wsr_cmd_process();
+	if (v2x_wsr_cmd_process() < 0)
+	{
+		fprintf(stderr, "v2x_wsr_cmd_process() failed\n");
+		return -1;
+	}
 
 	pthread_create(&tx_thread, NULL, v2x_tx_cmd_process, NULL);
 	pthread_create(&rx_thread, NULL, v2x_rx_cmd_process, NULL);
