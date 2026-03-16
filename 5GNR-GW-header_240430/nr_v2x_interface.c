@@ -1158,6 +1158,12 @@ static int AnalyzeMsg(uint8_t *msg, int len)
 	int psid = ntohl(rx_msg->psid);
 	int flag_extensible_msg = 0;
 
+	if (msg == NULL || len < (int)(sizeof(V2x_App_Hdr) + sizeof(V2x_App_RxMsg)))
+	{
+		printf("[Error] Invalid message length : %d\n", len);
+		return -1;
+	}
+
 	if (len > 0)
 	{
 		p_overall = (TLVC_Overall *)rx_msg->data;
