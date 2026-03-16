@@ -386,6 +386,11 @@ void *v2x_tx_cmd_process(void *arg)
 	DB_V2X_T *db_v2x_tmp_p = NULL;
 
 	v2x_tx_pdu_p = malloc(v2x_tx_pdu_size);
+	if (v2x_tx_pdu_p == NULL)
+	{
+		perror("malloc() failed for v2x_tx_pdu_p");
+		return NULL;
+	}
 	memset(v2x_tx_pdu_p, 0, sizeof(Ext_V2X_TxPDU_t));
 
 	v2x_tx_pdu_p->ver = htons(SAMPLE_V2X_API_VER);
@@ -414,6 +419,11 @@ void *v2x_tx_cmd_process(void *arg)
 	v2x_tx_pdu_p->v2x_msg.length = htons(db_v2x_tmp_size);
 
 	db_v2x_tmp_p = malloc(db_v2x_tmp_size);
+	if (db_v2x_tmp_p == NULL)
+	{
+		perror("malloc() failed for db_v2x_tmp_p");
+		return NULL;
+	}
 	memset(db_v2x_tmp_p, 0, db_v2x_tmp_size);
 
 	db_v2x_tmp_p->eDeviceType = DB_V2X_DEVICE_TYPE_OBU;
