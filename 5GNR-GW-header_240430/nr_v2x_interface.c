@@ -1143,29 +1143,58 @@ static void PrintExtStatusMsg(void *p)
 /**
  * @name   AnalyzeMsg
  * @brief  Extensible Message 로그 출력
- * @param  uint8_t *msg : 수신한 데이터
- * 		int len : 수신한 데이터 길이
- * @return int : 성공 - 0, 실패 - 음수
+ * @param  uint8_t *msg : 수신한 데이터 버퍼
+ * @param  int len      : 수신한 데이터 길이
+ * @return int          : 성공 - 0, 실패 - 음수
  **/
 static int AnalyzeMsg(uint8_t *msg, int len)
 {
-	int i, overall_len, package_len, package_remain_len;
+	int i;
+
+	// 전체 TLVC 길이
+	int overall_len;
+
+	// 전체 패키지 길이
+	int package_len;
+
+	// 패키지 남은 길이 (TLVC 순회하면서 감소)
+	int package_remain_len;
+
 	uint16_t *crc, cal_crc;
+
+	// TLVC 패키지 순회용 포인터
 	void *p;
+
+	// Extensible Message의 Overall TLVC 구조체
 	TLVC_Overall *p_overall = NULL;
+
+	// V2X Application Header
 	V2x_App_Hdr *hdr = (V2x_App_Hdr *)msg;
+
+	// Header 뒤에 오는 실제 RX 메시지
 	V2x_App_RxMsg *rx_msg = (V2x_App_RxMsg *)hdr->data;
+
+	// PSID (메시지 타입 식별자)
 	int psid = ntohl(rx_msg->psid);
+
+	// Extensible 메시지 여부
 	int flag_extensible_msg = 0;
 
+	// ---------------------------
+	// 메시지 길이 검증
+	// ---------------------------
 	if (msg == NULL || len < (int)(sizeof(V2x_App_Hdr) + sizeof(V2x_App_RxMsg)))
 	{
 		printf("[Error] Invalid message length : %d\n", len);
 		return -1;
 	}
 
+	// ---------------------------
+	// TLVC Overall 구조 위치 설정
+	// ---------------------------
 	if (len > 0)
 	{
+		// RxMsg 뒤에 TLVC Overall 시작
 		p_overall = (TLVC_Overall *)rx_msg->data;
 	}
 	else
@@ -1174,6 +1203,9 @@ static int AnalyzeMsg(uint8_t *msg, int len)
 		return -1;
 	}
 
+	// ---------------------------
+	// PSID 기반 메시지 종류 확인
+	// ---------------------------
 	if (psid == EM_V2V_MSG)
 	{
 		printf("Get Extensible Message - V2V\n");
@@ -1191,57 +1223,103 @@ static int AnalyzeMsg(uint8_t *msg, int len)
 	}
 	else
 	{
+		// 일반 메시지
 		printf("Get Normal Message - PSID(%u)\n", psid);
 	}
 
+	// ---------------------------
+	// Extensible Message 처리
+	// ---------------------------
 	if (flag_extensible_msg)
 	{
+		// Overall TLVC 타입 검증
 		if (ntohl(p_overall->type) != EM_PT_OVERALL)
 		{
 			printf("[Error] Overall Type - %u, need - %u\n", ntohl(p_overall->type), EM_PT_OVERALL);
 			return -1;
 		}
 
-		overall_len = ntohs(p_overall->len); // V, C 길이
+		// TLVC Overall 길이 (Value + CRC 길이)
+		overall_len = ntohs(p_overall->len);
+
+		// 패키지 전체 길이
 		package_remain_len = package_len = p_overall->len_package;
+
 		printf("Overall Package - Version : %d / Length : %d\n", p_overall->version, overall_len);
-		printf("Number of Packages = %d / All Length of Package= %d\n", p_overall->num_package,
+
+		printf("Number of Packages = %d / All Length of Package= %d\n",
+			   p_overall->num_package,
 			   ntohs(package_len));
-		cal_crc = CalcCRC16((uint8_t *)p_overall, overall_len + 4); // T, L, V 길이
+
+		// ---------------------------
+		// CRC 검증
+		// ---------------------------
+		cal_crc = CalcCRC16((uint8_t *)p_overall, overall_len + 4); // TLV 전체
+
 		if (cal_crc != ntohs(p_overall->crc))
 			printf("[Error] CRC Error : %04X / need : %04X\n", ntohs(p_overall->crc), cal_crc);
 
-		// AddExtStatusData(p_overall, eStatusTxRx_Rx);
-		p = (uint8_t *)p_overall + sizeof(TLVC_Overall); // next TLVC
+		// ---------------------------
+		// TLVC 패키지 시작 위치
+		// ---------------------------
+		p = (uint8_t *)p_overall + sizeof(TLVC_Overall);
+
+		// ---------------------------
+		// TLVC 패키지 반복 파싱
+		// ---------------------------
 		for (i = 0; i < p_overall->num_package; i++)
 		{
+			// 현재 TLVC 구조체
 			V2x_App_Ext_TLVC *tlvc = (V2x_App_Ext_TLVC *)p;
+
+			// TLVC Value 길이
 			int tlvc_len = ntohs(tlvc->len);
+
+			// TLVC Type
 			uint32_t tlvc_type = ntohl(tlvc->type);
 
+			// 패키지 길이 검증
 			if (package_remain_len < tlvc_len)
 			{
 				printf("[ERROR] Remain Length - %d\n", tlvc_len);
 				break;
 			}
 
+			// ---------------------------
+			// TLVC 타입별 처리
+			// ---------------------------
 			if (tlvc_type == EM_PT_STATUS)
 			{
 				printf("Package : %d (Status Package)\n", i + 1);
+
+				// Status TLVC 출력
 				PrintExtStatusMsg(p);
 			}
 			else
 			{
-				printf("Package : %d\n\tPSID : %d, TLV length : %d\n", i + 1, tlvc_type, tlvc_len + 6);
-				Debug_Msg_Print_Data(DEBUG_MSG_LV_MID, (uint8_t *)p, tlvc_len + 6); // 6: T, L 크기 추가
+				printf("Package : %d\n\tPSID : %d, TLV length : %d\n",
+					   i + 1,
+					   tlvc_type,
+					   tlvc_len + 6);
+
+				// Raw 데이터 출력
+				Debug_Msg_Print_Data(DEBUG_MSG_LV_MID,
+									 (uint8_t *)p,
+									 tlvc_len + 6); // 6 = Type + Length
 			}
 
-			p = p + tlvc_len + 6;									// 6: T, L 크기
-			package_remain_len = package_remain_len - tlvc_len - 6; // 6: T, L 크기
+			// ---------------------------
+			// 다음 TLVC 이동
+			// ---------------------------
+			p = p + tlvc_len + 6;
+
+			// 남은 패키지 길이 감소
+			package_remain_len = package_remain_len - tlvc_len - 6;
 		}
 	}
 	else
 	{
+		// 일반 메시지는 raw dump 출력
 		Debug_Msg_Print_Data(DEBUG_MSG_LV_MID, msg, len);
 	}
 
