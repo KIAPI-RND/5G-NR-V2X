@@ -349,7 +349,8 @@ int v2x_wsr_cmd_process(void)
 		}
 		else if (n != sizeof(ws_resp))
 		{
-			fprintf(stderr, "recv() received a different number of bytes than expected\n");
+			fprintf(stderr, "recv() size mismatch: expected=%zu, received=%zd\n",
+					sizeof(ws_resp), n);
 		}
 
 		usleep(1000);
