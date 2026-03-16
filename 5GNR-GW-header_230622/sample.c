@@ -107,7 +107,7 @@ int parsing_option(int argc, char *argv[])
 		{
 		case 'o':
 			payload_type_flg = 1;
-			strcpy(payload_type_str, optarg);
+			snprintf(payload_type_str, sizeof(payload_type_str), "%s", optarg);
 			printf("Payload type: %s\n", optarg);
 			break;
 		case 'p':
@@ -116,7 +116,7 @@ int parsing_option(int argc, char *argv[])
 			break;
 		case 'y':
 			comm_type_flg = 1;
-			strcpy(comm_type_str, optarg);
+			snprintf(comm_type_str, sizeof(comm_type_str), "%s", optarg);
 			printf("Communication type: %s\n", optarg);
 			break;
 		case 't':
@@ -125,7 +125,7 @@ int parsing_option(int argc, char *argv[])
 			break;
 		case 's':
 			signer_id_flg = 1;
-			strcpy(signer_id_str, optarg);
+			snprintf(signer_id_str, sizeof(signer_id_str), "%s", optarg);
 			printf("Signer ID: %s\n", optarg);
 			break;
 		case 'r':
