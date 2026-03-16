@@ -150,118 +150,193 @@ void Debug_Msg_Print_Data(int msgLv, unsigned char *data, int len)
 
 /**
   * @name	ReadNTcp
-  * @brief	TCP연결 후 요청하는 길이만큼 읽어서 전달
-  * @param	const int sock : 소켓
-			char *buf : 받을 데이터 넣을 버퍼
-			uint32_t len : 읽어올 데이터 길이
-  * @return 0 : close 필요, -1 : 에러, -2 : 알수없는 에러, 0> : 성공(읽은 크기)
+  * @brief	TCP 소켓에서 요청한 길이(len) 만큼 데이터를 읽어오는 함수
+  *          TCP는 read()가 한번에 모든 데이터를 반환하지 않을 수 있기 때문에
+  *          반복적으로 읽어서 지정한 길이까지 채운다.
+  *
+  * @param	const int sock : TCP 소켓
+  * @param	uint8_t *buf   : 읽은 데이터를 저장할 버퍼
+  * @param	uint32_t len   : 읽어올 총 데이터 길이
+  *
+  * @return
+  *  0   : 연결 종료 (close 필요)
+  * -1   : EAGAIN 반복 초과
+  * -2   : 알 수 없는 에러
+  * -3   : poll timeout
+  * >0   : 실제 읽은 데이터 크기
  **/
 int ReadNTcp(const int sock, uint8_t *buf, uint32_t len)
 {
-	int size, readn = 0, eagain = 0;
-	uint32_t remain = len;
+	int size;           // read() 결과
+	int readn = 0;      // 지금까지 읽은 총 데이터 크기
+	int eagain = 0;     // EAGAIN 발생 횟수
+
+	uint32_t remain = len; // 아직 읽어야 할 데이터 길이
+
 	struct pollfd poll_fd;
 
+	// ---------------------------------------------------
+	// 요청한 길이를 모두 읽을 때까지 반복
+	// ---------------------------------------------------
 	while (remain > 0)
 	{
+		// 현재 읽을 위치 = buf + readn
 		size = read(sock, (char *)&buf[readn], remain);
 
 		if (size > 0)
 		{
-			readn += size;
-			remain -= size;
+			// 정상적으로 읽은 경우
+
+			readn += size;   // 읽은 길이 누적
+			remain -= size;  // 남은 길이 감소
 		}
+
 		else if (size == 0)
+			// peer가 연결을 종료한 경우
 			return 0;
+
 		else
 		{
+			// read 실패
+
 			if (errno == EAGAIN)
 			{
+				// non-blocking socket에서 데이터가 아직 없는 경우
+
 				if (eagain > 100)
 				{
+					// 너무 많이 발생하면 에러 처리
 					return -1;
 				}
 
 				eagain++;
+
+				// CPU 과부하 방지
 				usleep(0);
+
 				continue;
 			}
+
 			else if (errno == ECONNRESET)
 			{
+				// 상대방이 연결 강제 종료
 				return 0;
 			}
+
 			else
+				// 알 수 없는 에러
 				return -2;
 		}
 
+		// ---------------------------------------------------
+		// 아직 읽어야 할 데이터가 남아있으면 poll로 대기
+		// ---------------------------------------------------
 		if (remain > 0)
 		{
 			poll_fd.fd = sock;
 			poll_fd.events = POLLIN;
 
+			// 최대 5초 대기
 			int poll_ret = poll(&poll_fd, 1, 5000);
+
 			if (poll_ret == 0)
 			{
+				// timeout
 				fprintf(stderr, "poll() timeout while waiting for remaining data\n");
 				return -3;
 			}
 			else if (poll_ret < 0)
 			{
+				// poll 실패
 				perror("poll() failed");
 				return -2;
 			}
 		}
+
 	} // while
 
+	// 전체 길이 읽기 성공
 	return readn;
 }
 
 /**
   * @name	WriteNTcp
-  * @brief	TCP연결 후 요청하는 길이만큼 전송
-  * @param	const int sock : 소켓
-			char *buf : 쓸 데이터 넣은 버퍼
-			uint32_t len : 쓸 데이터 길이
-  * @return 0 : close 필요, -1 : 에러, -2 : 알수없는 에러, 0> : 성공(읽은 크기)
+  * @brief	TCP 소켓으로 요청한 길이(len) 만큼 데이터를 전송하는 함수
+  *          write() 역시 한번에 모든 데이터를 보내지 못할 수 있기 때문에
+  *          반복적으로 호출하여 모든 데이터를 전송한다.
+  *
+  * @param	const int sock : TCP 소켓
+  * @param	uint8_t *buf   : 전송할 데이터 버퍼
+  * @param	uint32_t len   : 전송할 데이터 길이
+  *
+  * @return
+  *  0   : 연결 종료 (close 필요)
+  * -1   : EAGAIN 반복 초과
+  * -2   : 알 수 없는 에러
+  * >0   : 실제 전송한 데이터 크기
  **/
 int WriteNTcp(const int sock, uint8_t *buf, uint32_t len)
 {
-	int size, readn = 0, eagain = 0;
-	uint32_t remain = len;
+	int size;          // write() 결과
+	int readn = 0;     // 지금까지 보낸 데이터 크기
+	int eagain = 0;    // EAGAIN 발생 횟수
 
+	uint32_t remain = len; // 아직 보내야 할 데이터 길이
+
+	// ---------------------------------------------------
+	// 요청한 길이를 모두 보낼 때까지 반복
+	// ---------------------------------------------------
 	while (remain > 0)
 	{
+		// 현재 전송 위치
 		size = write(sock, (char *)&buf[readn], remain);
 
 		if (size > 0)
 		{
-			readn += size;
-			remain -= size;
+			// 정상 전송
+
+			readn += size;   // 전송한 길이 누적
+			remain -= size;  // 남은 길이 감소
 		}
+
 		else if (size == 0)
 		{
+			// 연결 종료
 			return 0;
 		}
+
 		else
 		{
+			// write 실패
+
 			if (errno == EAGAIN)
 			{
+				// 송신 버퍼가 꽉 찬 경우
+
 				if (eagain > 100)
 				{
 					return -1;
 				}
 
 				eagain++;
+
 				usleep(0);
+
 				continue;
 			}
+
 			else if (errno == ECONNRESET)
+				// 상대가 연결 강제 종료
 				return 0;
+
 			else
+				// 알 수 없는 에러
 				return -2;
 		}
+
 	} // while
 
+	// 전체 전송 성공
 	return readn;
 }
 
