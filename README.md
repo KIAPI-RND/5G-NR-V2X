@@ -16,3 +16,6 @@
 
 ---------------------------------------------
 
+[차량정보 연계 시각화 예시]
+
+<img width="815" height="615" alt="Image" src="https://github.com/user-attachments/assets/670d2fb7-63e1-4bad-968c-4956f56a5464" />
